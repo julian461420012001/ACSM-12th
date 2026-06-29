@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACSM 運動處方速查 · 12th Edition</title>
+<style>
+  :root{
+    --ink:#1a1d23; --ink-soft:#5a6270; --line:#e3e6ec; --line-soft:#eef0f4;
+    --paper:#fbfbf9; --panel:#ffffff;
+    --accent:#0d6b5e;       /* 深青綠 — 臨床/醫療沉穩 */
+    --accent-soft:#e6f2ef;
+    --aerobic:#0d6b5e; --resist:#9a5b1e; --flex:#4a5db8; --extra:#7a3b8f;
+    --warn-bg:#fdf6ec; --warn-line:#e9d4a8;
+    --radius:0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    background:var(--paper); color:var(--ink);
+    line-height:1.6; font-size:15px;
+    display:flex; min-height:100vh;
+  }
+  /* ===== 側邊選單 ===== */
+  .sidebar{
+    width:300px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line); height:100vh; position:sticky; top:0;
+    display:flex; flex-direction:column;
+  }
+  .brand{
+    padding:22px 22px 16px; border-bottom:1px solid var(--line);
+  }
+  .brand h1{
+    font-size:17px; font-weight:800; letter-spacing:-0.01em;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .brand .tag{
+    font-size:10px; font-weight:700; color:var(--accent);
+    border:1px solid var(--accent); padding:1px 5px; letter-spacing:0.04em;
+  }
+  .brand p{font-size:11.5px; color:var(--ink-soft); margin-top:5px; letter-spacing:0.02em}
+  .search-wrap{padding:14px 18px 8px}
+  .search-wrap input{
+    width:100%; border:1px solid var(--line); padding:9px 12px;
+    font-size:13px; font-family:inherit; background:var(--paper);
+    border-radius:var(--radius); outline:none; transition:border-color .15s;
+  }
+  .search-wrap input:focus{border-color:var(--accent)}
+  .menu{flex:1; overflow-y:auto; padding:4px 0 30px}
+  .cat-label{
+    font-size:10.5px; font-weight:800; letter-spacing:0.1em; color:var(--ink-soft);
+    text-transform:uppercase; padding:14px 22px 6px;
+  }
+  .menu-item{
+    display:block; width:100%; text-align:left; border:none; background:none;
+    font-family:inherit; cursor:pointer; padding:8px 22px 8px 22px;
+    font-size:13.5px; color:var(--ink); border-left:3px solid transparent;
+    transition:background .12s, border-color .12s;
+  }
+  .menu-item:hover{background:var(--line-soft)}
+  .menu-item.active{background:var(--accent-soft); border-left-color:var(--accent); font-weight:700}
+  .menu-item .en{display:block; font-size:11px; color:var(--ink-soft); margin-top:1px}
+  .menu-item.active .en{color:var(--accent)}
+  .badge-full{
+    display:inline-block; font-size:9px; font-weight:700; color:#fff; background:var(--accent);
+    padding:1px 5px; margin-left:6px; vertical-align:middle; letter-spacing:0.03em;
+  }
+
+  /* ===== 主內容 ===== */
+  .main{flex:1; min-width:0; padding:40px 48px 80px; max-width:1100px}
+  .empty{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:70vh; text-align:center; color:var(--ink-soft);
+  }
+  .empty svg{opacity:.35; margin-bottom:18px}
+  .empty h2{font-size:19px; color:var(--ink); font-weight:700; margin-bottom:8px}
+  .empty p{font-size:14px; max-width:380px}
+
+  .doc-head{border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:4px}
+  .doc-head .cat-pill{
+    display:inline-block; font-size:11px; font-weight:700; color:var(--accent);
+    background:var(--accent-soft); padding:3px 9px; letter-spacing:0.03em; margin-bottom:10px;
+  }
+  .doc-head h2{font-size:28px; font-weight:800; letter-spacing:-0.02em; line-height:1.2}
+  .doc-head .en-title{font-size:15px; color:var(--ink-soft); font-weight:500; margin-top:3px}
+  .doc-head .page-ref{font-size:12px; color:var(--ink-soft); margin-top:10px}
+  .doc-head .page-ref b{color:var(--accent); font-weight:700}
+
+  .section-label{
+    font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--ink-soft); margin:34px 0 14px; display:flex; align-items:center; gap:10px;
+  }
+  .section-label::after{content:""; flex:1; height:1px; background:var(--line)}
+
+  /* FITT 表格 */
+  .fitt-table{width:100%; border-collapse:collapse; font-size:13px}
+  .fitt-table th, .fitt-table td{
+    border:1px solid var(--line); padding:11px 13px; vertical-align:top; text-align:left;
+  }
+  .fitt-table thead th{
+    background:var(--ink); color:#fff; font-weight:700; font-size:12px;
+    letter-spacing:0.02em; position:sticky; top:0;
+  }
+  .fitt-table thead th:first-child{background:#2a2e36}
+  .fitt-table .row-label{
+    background:var(--paper); font-weight:800; font-size:11px; letter-spacing:0.05em;
+    text-transform:uppercase; color:var(--ink-soft); width:90px; white-space:nowrap;
+  }
+  .fitt-table td{color:var(--ink); line-height:1.55}
+  .fitt-table .col-aerobic{border-top:3px solid var(--aerobic)}
+  .fitt-table .col-resist{border-top:3px solid var(--resist)}
+  .fitt-table .col-flex{border-top:3px solid var(--flex)}
+  .fitt-table .col-extra{border-top:3px solid var(--extra)}
+
+  /* 臨床區塊（原則 / 特別提醒） */
+  .block{margin-bottom:18px}
+  .block:last-child{margin-bottom:0}
+  .block-h{
+    font-size:14px; font-weight:800; color:var(--ink); margin-bottom:7px;
+    padding-left:11px; border-left:3px solid var(--accent);
+  }
+  .block ul{list-style:none; padding-left:11px}
+  .block li{
+    font-size:13.5px; padding:3px 0 3px 18px; position:relative; line-height:1.6; color:var(--ink);
+  }
+  .block li::before{
+    content:"–"; position:absolute; left:2px; color:var(--accent); font-weight:700;
+  }
+  .block li .sub{list-style:none; padding-left:14px; margin-top:2px}
+  .block li .sub li{font-size:13px; color:var(--ink-soft); padding:2px 0 2px 16px}
+  .block li .sub li::before{content:"·"; left:4px; font-size:16px; line-height:1}
+
+  .clinical-wrap{
+    background:#f7f9f9; border:1px solid var(--line); border-left:4px solid var(--accent);
+    padding:18px 22px; margin-top:8px;
+  }
+  .special-wrap{
+    background:var(--warn-bg); border:1px solid var(--warn-line); border-left:4px solid #c89b3c;
+    padding:18px 22px; margin-top:8px;
+  }
+  .special-wrap .block-h{border-left-color:#c89b3c}
+  .special-wrap .block li::before{color:#b5872a}
+
+  /* 簡要重點(未補詳細的疾病) */
+  .notes{
+    background:var(--warn-bg); border:1px solid var(--warn-line); border-left:4px solid #c89b3c;
+    padding:16px 20px; margin-top:8px;
+  }
+  .notes ul{list-style:none}
+  .notes li{
+    font-size:13.5px; padding:5px 0 5px 22px; position:relative; line-height:1.55;
+  }
+  .notes li::before{
+    content:"▸"; position:absolute; left:2px; color:#b5872a; font-weight:700;
+  }
+  .pending{
+    font-size:12.5px; color:var(--ink-soft); background:var(--accent-soft);
+    border:1px dashed var(--accent); padding:10px 14px; margin-top:14px; line-height:1.6;
+  }
+  .pending b{color:var(--accent)}
+  /* 狀態標籤 */
+  .stag{display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; margin-left:6px; vertical-align:middle; letter-spacing:0.02em}
+  .stag-full{background:var(--accent); color:#fff}
+  .stag-approx{background:#e9d4a8; color:#7a5a18}
+  .stag-none{background:#e3e6ec; color:#5a6270}
+  .no-fitt{
+    font-size:13.5px; color:var(--ink-soft); background:#f3f4f6; border:1px solid var(--line);
+    border-left:4px solid #9aa3b2; padding:14px 18px; margin-top:8px; line-height:1.6;
+  }
+  .no-fitt b{color:var(--ink)}
+  .approx-note{
+    font-size:12.5px; color:#7a5a18; background:var(--warn-bg); border:1px solid var(--warn-line);
+    padding:8px 12px; margin-bottom:10px; line-height:1.5;
+  }
+  /* 選單狀態小點 */
+  .badge-todo{
+    display:inline-block; font-size:9px; font-weight:700; color:#8a6d3b; background:#f5ead0;
+    padding:1px 5px; margin-left:6px; vertical-align:middle;
+  }
+  .progress{
+    font-size:11.5px; color:var(--ink-soft); padding:10px 22px 4px; line-height:1.8;
+  }
+  .progress b{color:var(--accent); font-size:13px}
+  .prog-bar{display:inline-block; width:80px; height:6px; background:var(--line); vertical-align:middle; margin-left:4px}
+  .prog-bar span{display:block; height:100%; background:var(--accent)}
+  .disclaimer{
+    margin-top:48px; padding-top:18px; border-top:1px solid var(--line);
+    font-size:11.5px; color:var(--ink-soft); line-height:1.6;
+  }
+  /* 行動裝置 */
+  .menu-toggle{display:none}
+  @media(max-width:820px){
+    body{flex-direction:column}
+    .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line)}
+    .menu{max-height:0; overflow:hidden; transition:max-height .25s}
+    .menu.open{max-height:60vh; overflow-y:auto}
+    .menu-toggle{
+      display:block; width:100%; padding:12px 22px; background:var(--accent); color:#fff;
+      border:none; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; text-align:left;
+    }
+    .main{padding:24px 18px 60px}
+    .doc-head h2{font-size:23px}
+    .fitt-table{font-size:12px}
+    .fitt-table th,.fitt-table td{padding:8px 9px}
+    .fitt-table .row-label{width:64px}
+    .fitt-wrap{overflow-x:auto}
+  }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>ACSM 運動處方 <span class="tag">12TH</span></h1>
+      <p>臨床族群心肺復健與 FITT 處方速查</p>
+    </div>
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="搜尋疾病…（如 parkinson、糖尿病）" autocomplete="off">
+    </div>
+    <button class="menu-toggle" id="menuToggle">▤ 疾病選單</button>
+    <nav class="menu" id="menu"></nav>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="empty" id="empty">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M3 5h18M3 12h18M3 19h12"/>
+      </svg>
+      <h2>從左側選擇一個疾病</h2>
+      <p>點選後即顯示該疾病的心肺復健重點與完整 FITT 運動處方表格（有氧／阻力／柔軟度）。</p>
+    </div>
+    <article id="content" style="display:none"></article>
+  </main>
+
+<script src="data.js"></script>
+<script>
+  const menu = document.getElementById('menu');
+  const content = document.getElementById('content');
+  const empty = document.getElementById('empty');
+  const search = document.getElementById('search');
+
+  function buildMenu(filter=""){
+    menu.innerHTML="";
+    const f = filter.trim().toLowerCase();
+    // 進度計數
+    const done = DISEASES.filter(d=>d.detailed).length;
+    const total = DISEASES.length;
+    const prog=document.createElement('div'); prog.className='progress';
+    prog.innerHTML=`完成詳細版 <b>${done}</b> / ${total}　<span class="prog-bar"><span style="width:${Math.round(done/total*100)}%"></span></span>`;
+    menu.appendChild(prog);
+    CATEGORIES.forEach(cat=>{
+      const items = DISEASES.filter(d=>d.cat===cat &&
+        (!f || d.name.toLowerCase().includes(f) || d.en.toLowerCase().includes(f) || d.id.includes(f)));
+      if(!items.length) return;
+      const lbl=document.createElement('div'); lbl.className='cat-label'; lbl.textContent=cat;
+      menu.appendChild(lbl);
+      items.forEach(d=>{
+        const b=document.createElement('button');
+        b.className='menu-item'; b.dataset.id=d.id;
+        const badge = d.detailed
+          ? '<span class="badge-full">詳細</span>'
+          : '<span class="badge-todo">待補</span>';
+        b.innerHTML=`${d.name}${badge}<span class="en">${d.en}</span>`;
+        b.onclick=()=>{show(d.id); if(window.innerWidth<=820){menu.classList.remove('open')}};
+        menu.appendChild(b);
+      });
+    });
+  }
+
+  function cell(obj,key){ return obj && obj[key] ? obj[key] : '—'; }
+
+  function statusTag(s){
+    if(s==='full') return '<span class="stag stag-full">有 FITT 表</span>';
+    if(s==='approx') return '<span class="stag stag-approx">FITT 相關敘述</span>';
+    if(s==='none') return '<span class="stag stag-none">僅 Special Considerations</span>';
+    return '';
+  }
+
+  // 渲染一組 block（標題+條目，支援巢狀 sub）
+  function renderBlocks(blocks){
+    return blocks.map(b=>{
+      const lis = b.items.map(it=>{
+        if(typeof it === 'string') return `<li>${it}</li>`;
+        // 物件：{t:主條目, sub:[子條目]}
+        const sub = it.sub ? `<ul class="sub">${it.sub.map(s=>`<li>${s}</li>`).join('')}</ul>` : '';
+        return `<li>${it.t}${sub}</li>`;
+      }).join('');
+      return `<div class="block"><div class="block-h">${b.h}</div><ul>${lis}</ul></div>`;
+    }).join('');
+  }
+
+  function show(id){
+    const d = DISEASES.find(x=>x.id===id);
+    if(!d) return;
+    document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+    empty.style.display='none'; content.style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+
+    const hasExtra = !!d.extra;
+    const cols = ['有氧 Aerobic','阻力 Resistance','柔軟度 Flexibility'];
+    if(hasExtra) cols.push(d.extra.label);
+    const colClass=['col-aerobic','col-resist','col-flex','col-extra'];
+
+    function rowCells(key){
+      let h=`<td class="${colClass[0]}">${cell(d.aerobic,key)}</td>`;
+      h+=`<td class="${colClass[1]}">${cell(d.resistance,key)}</td>`;
+      h+=`<td class="${colClass[2]}">${cell(d.flex,key)}</td>`;
+      if(hasExtra) h+=`<td class="${colClass[3]}">${cell(d.extra,key)}</td>`;
+      return h;
+    }
+
+    // 一、臨床原則與注意事項
+    let clinicalHTML = '';
+    if(d.clinical && d.clinical.length){
+      if(d.detailed){
+        clinicalHTML = `
+          <div class="section-label">一、臨床原則與注意事項</div>
+          <div class="clinical-wrap">${renderBlocks(d.clinical)}</div>`;
+      }
+    }
+
+    // 二、FITT — 依 status 決定呈現
+    let fittHTML='';
+    if(d.status==='none'){
+      fittHTML = `
+        <div class="section-label">${d.detailed?'二、':''}運動處方 FITT-VP</div>
+        <div class="no-fitt">此情境在 ACSM 第 12 版中<b>沒有獨立的 FITT 處方表格</b>，重點請見下方臨床原則與特別提醒。</div>`;
+    } else {
+      const approxNote = d.status==='approx'
+        ? `<div class="approx-note">⚠ 書中無獨立 FITT 表，以下為相關敘述或參照鄰近情境的整理。</div>` : '';
+      fittHTML = `
+        <div class="section-label">${d.detailed?'二、':''}運動處方 FITT-VP</div>
+        ${approxNote}
+        <div class="fitt-wrap">
+        <table class="fitt-table">
+          <thead><tr><th></th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>
+            <tr><td class="row-label">Frequency 頻率</td>${rowCells('f')}</tr>
+            <tr><td class="row-label">Intensity 強度</td>${rowCells('i')}</tr>
+            <tr><td class="row-label">Time 時間</td>${rowCells('t')}</tr>
+            <tr><td class="row-label">Type 類型</td>${rowCells('ty')}</tr>
+          </tbody>
+        </table>
+        </div>`;
+    }
+
+    // 三、特別提醒 / 或簡要重點
+    let specialHTML = '';
+    if(d.detailed && d.special && d.special.length){
+      specialHTML = `
+        <div class="section-label">三、特別提醒 Special Considerations</div>
+        <div class="special-wrap">${renderBlocks(d.special)}</div>`;
+    } else if(!d.detailed){
+      // 未補詳細：顯示簡要重點 + 待補提示
+      const noteItems = (d.clinical && d.clinical[0] && d.clinical[0].items)
+        ? d.clinical[0].items.map(n=>`<li>${typeof n==='string'?n:n.t}</li>`).join('') : '';
+      specialHTML = `
+        <div class="section-label">臨床重點</div>
+        <div class="notes"><ul>${noteItems}</ul></div>
+        <div class="pending">
+          📝 此情境目前為<b>骨架（待補）</b>。請用你的 Claude Code 依照 <b>補充指令.md</b>，
+          從 ACSM 第 <b>${d.pageStr||d.page}</b> 頁整理完整內容並更新 data.js，即可變成詳細版。
+        </div>`;
+    }
+
+    content.innerHTML = `
+      <div class="doc-head">
+        <span class="cat-pill">${d.cat}</span>
+        <h2>${d.name}</h2>
+        <div class="en-title">${d.en}</div>
+        <div class="page-ref">ACSM 第 12 版 · 參見 PDF 第 <b>${d.pageStr||d.page}</b> 頁 ${statusTag(d.status)}</div>
+      </div>
+      ${clinicalHTML}
+      ${fittHTML}
+      ${specialHTML}
+      <div class="disclaimer">
+        內容整理自 <i>ACSM's Guidelines for Exercise Testing and Prescription, 12th Edition</i>，供個人學習速查之用。
+        實際臨床處方請以原書完整內文（第 ${d.page} 頁）及病人個別狀況為準。
+        縮寫：HRR 心率儲備、VO₂R 攝氧儲備、1-RM 最大反覆、RPE 自覺費力、HRmax 最大心率。
+      </div>
+    `;
+  }
+
+  document.getElementById('menuToggle').onclick=()=>menu.classList.toggle('open');
+  search.addEventListener('input',e=>buildMenu(e.target.value));
+  buildMenu();
+</script>
+</body>
+</html>
