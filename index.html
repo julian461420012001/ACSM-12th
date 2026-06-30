@@ -235,6 +235,31 @@
   .p-table th,.p-table td{border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top}
   .p-table thead th{background:#1a3a5c; color:#fff; font-weight:700; font-size:12px}
   .p-table tbody tr:nth-child(even){background:var(--paper)}
+  /* ===== ACSM 11th 補充區塊 ===== */
+  .acsm11-box{
+    margin-top:32px; padding:18px 20px; background:#faf6ee;
+    border:1px solid #e6d9bd; border-left:4px solid #b8893c;
+  }
+  .a11-tag{
+    display:inline-block; font-size:11px; font-weight:800; letter-spacing:0.03em;
+    color:#fff; background:#b8893c; padding:3px 10px; margin-bottom:12px;
+  }
+  .a11-page{font-size:11px; color:#9a7a3c; margin-bottom:10px; font-weight:600}
+  .a11-sec{margin:14px 0}
+  .a11-sec:first-of-type{margin-top:0}
+  .a11-h{font-size:13.5px; font-weight:800; color:#6b5220; margin-bottom:6px;
+    padding-left:9px; border-left:3px solid #b8893c;}
+  .a11-body{font-size:13.5px; line-height:1.7; color:var(--ink); margin-bottom:6px}
+  .a11-list{list-style:none; padding-left:4px}
+  .a11-list>li{font-size:13px; padding:3px 0 3px 18px; position:relative; line-height:1.6; color:var(--ink)}
+  .a11-list>li::before{content:"▪"; position:absolute; left:3px; color:#b8893c; font-weight:700}
+  .a11-list .sub{list-style:none; padding-left:14px; margin-top:2px}
+  .a11-list .sub li{font-size:12.5px; color:var(--ink-soft); padding:2px 0 2px 14px; position:relative}
+  .a11-list .sub li::before{content:"–"; position:absolute; left:2px; color:var(--ink-soft)}
+  .a11-table{width:100%; border-collapse:collapse; font-size:12.5px; margin:8px 0}
+  .a11-table th,.a11-table td{border:1px solid #e0d3b5; padding:8px 11px; text-align:left; vertical-align:top}
+  .a11-table thead th{background:#b8893c; color:#fff; font-weight:700; font-size:12px}
+  .a11-table tbody tr:nth-child(even){background:#f5efe2}
   .disclaimer{
     margin-top:48px; padding-top:18px; border-top:1px solid var(--line);
     font-size:11.5px; color:var(--ink-soft); line-height:1.6;
@@ -291,9 +316,10 @@
   const search = document.getElementById('search');
 
   // ===== 階層式導覽 =====
-  // 兩大區:核心原則(雙層,先5章再主題) / 臨床族群(雙層,先7族群再疾病)
+  // 三大區:核心原則 / 心臟復健分期 / 臨床族群
   const PRINCIPLE_CAT = "核心原則 General Principles";
-  const POP_CATS = CATEGORIES.filter(c=>c!==PRINCIPLE_CAT); // 7 大族群
+  const CR_CAT = "心臟復健分期 Cardiac Rehab Phases";
+  const POP_CATS = CATEGORIES.filter(c=>c!==PRINCIPLE_CAT && c!==CR_CAT); // 7 大族群
   // 核心原則的章節順序(依 ACSM 書中章節)
   const PRINCIPLE_CHAPTERS = [
     "第1章 益處與風險 Benefits & Risks",
@@ -302,7 +328,7 @@
     "第4章 臨床運動測試 Clinical Testing",
     "第5章 運動處方原則 Prescription",
   ];
-  let navLevel = 'home';   // home | principle-chapters | principle-items | pop-cats | pop-items
+  let navLevel = 'home';   // home | principle-chapters | principle-items | cr-items | pop-cats | pop-items
   let navCat = null;       // pop-items 時記住族群
   let navChapter = null;   // principle-items 時記住章節
 
@@ -334,8 +360,11 @@
       menu.appendChild(makeBigBtn('📋','核心原則','General Principles',
         `${PRINCIPLE_CHAPTERS.length} 章 · ${DISEASES.filter(d=>d.cat===PRINCIPLE_CAT).length} 個主題`,
         ()=>{navLevel='principle-chapters'; buildMenu();}));
+      menu.appendChild(makeBigBtn('❤️','心臟復健分期','Cardiac Rehab Phases',
+        `${DISEASES.filter(d=>d.cat===CR_CAT).length} 個主題（Phase I/II/III）`,
+        ()=>{navLevel='cr-items'; buildMenu();}));
       menu.appendChild(makeBigBtn('🩺','臨床族群','Clinical Populations',
-        `${POP_CATS.length} 大類 · ${DISEASES.filter(d=>d.cat!==PRINCIPLE_CAT).length} 個情境`,
+        `${POP_CATS.length} 大類 · ${DISEASES.filter(d=>POP_CATS.includes(d.cat)).length} 個情境`,
         ()=>{navLevel='pop-cats'; buildMenu();}));
       return;
     }
@@ -359,6 +388,15 @@
       const lbl=document.createElement('div'); lbl.className='cat-label'; lbl.textContent=navChapter;
       menu.appendChild(lbl);
       DISEASES.filter(d=>d.cat===PRINCIPLE_CAT && d.chapter===navChapter).forEach(d=>menu.appendChild(makeItem(d)));
+      return;
+    }
+
+    // 心臟復健分期(單層,直接列 Phase I/II/III)
+    if(navLevel==='cr-items'){
+      menu.appendChild(makeBack('← 返回首頁',()=>{navLevel='home'; buildMenu();}));
+      const lbl=document.createElement('div'); lbl.className='cat-label'; lbl.textContent=CR_CAT;
+      menu.appendChild(lbl);
+      DISEASES.filter(d=>d.cat===CR_CAT).forEach(d=>menu.appendChild(makeItem(d)));
       return;
     }
 
@@ -440,6 +478,39 @@
     empty.style.display='none'; content.style.display='block';
     window.scrollTo({top:0,behavior:'smooth'});
 
+    // ===== ACSM 11th 補充區塊(若該主題有 acsm11 欄位才顯示)=====
+    function renderACSM11(d){
+      const a = d.acsm11;
+      if(!a) return '';
+      // a 可為:字串(單段) 或 {pageStr, blocks:[{h, body, list, table}]}
+      let inner='';
+      if(typeof a === 'string'){
+        inner = `<p class="a11-body">${a}</p>`;
+      } else {
+        const pg = a.pageStr ? `<div class="a11-page">ACSM 11th · 參見 PDF 第 ${a.pageStr} 頁</div>` : '';
+        inner = pg + (a.blocks||[]).map(s=>{
+          const body = s.body ? `<p class="a11-body">${s.body}</p>` : '';
+          const list = (s.list&&s.list.length) ? `<ul class="a11-list">${s.list.map(it=>{
+            if(typeof it==='string') return `<li>${it}</li>`;
+            const sub = it.sub ? `<ul class="sub">${it.sub.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
+            return `<li>${it.t}${sub}</li>`;
+          }).join('')}</ul>` : '';
+          let table='';
+          if(s.table && s.table.rows){
+            const head = s.table.head ? `<thead><tr>${s.table.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`:'';
+            const rows = s.table.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+            table = `<table class="a11-table">${head}<tbody>${rows}</tbody></table>`;
+          }
+          const h = s.h ? `<div class="a11-h">${s.h}</div>` : '';
+          return `<div class="a11-sec">${h}${body}${list}${table}</div>`;
+        }).join('');
+      }
+      return `<div class="acsm11-box">
+        <div class="a11-tag">ACSM 11th 補充 · 與 12 版的異同 / 11 版獨有內容</div>
+        ${inner}
+      </div>`;
+    }
+
     // ===== 核心原則(知識型,非 FITT)=====
     if(d.kind==='principle'){
       const secHTML = (d.sections||[]).map(s=>{
@@ -472,6 +543,7 @@
         </div>
         ${secHTML}
         ${pendingNote}
+        ${renderACSM11(d)}
         <div class="disclaimer">
           內容整理自 <i>ACSM's Guidelines for Exercise Testing and Prescription, 12th Edition</i>，供個人學習速查之用。
           實際應用請以原書完整內文（第 ${d.pageStr||d.page} 頁）為準。
@@ -556,6 +628,7 @@
       ${clinicalHTML}
       ${fittHTML}
       ${specialHTML}
+      ${renderACSM11(d)}
       <div class="disclaimer">
         內容整理自 <i>ACSM's Guidelines for Exercise Testing and Prescription, 12th Edition</i>，供個人學習速查之用。
         實際臨床處方請以原書完整內文（第 ${d.page} 頁）及病人個別狀況為準。
